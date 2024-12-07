@@ -1,0 +1,11 @@
+{
+  "name": "myopaingthu/vending_machine",
+  "description": "Vending Machine",
+  "type": "project",
+  "require": {},
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/"
+    }
+  }
+}
