@@ -20,7 +20,7 @@
     <div class="login-box">
         <div class="card">
             <div class="card-body login-card-body">
-                <p class="login-box-msg">Sign in to start your session</p>
+                <h4 class="login-box-msg">Vending Machine</h4>
                 <?php if (isset($_SESSION['errors'])): ?>
                     <div class="alert alert-danger" role="alert">
                         <?php foreach ($_SESSION['errors'] as $err) {

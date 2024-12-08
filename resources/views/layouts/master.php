@@ -15,7 +15,17 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.27/dist/sweetalert2.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.27/dist/sweetalert2.all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css">
 </head>
+<script>
+    $(document).ready(function() {
+        <?php if (isset($_SESSION['success'])): ?>
+            toastr.success('<?= htmlspecialchars($_SESSION['success']) ?>')
+        <?php unset($_SESSION['success']);
+        endif; ?>
+    });
+</script>
 
 <body class="hold-transition sidebar-mini">
     <div class="wrapper" id="app">

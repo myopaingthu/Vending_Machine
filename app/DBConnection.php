@@ -10,13 +10,12 @@ class DBConnection
     private static $instance = null;
     private $pdo;
 
-    // Private constructor to prevent creating multiple instances
-    private function __construct()
+    public function __construct()
     {
         try {
             $dsn = 'mysql:host=localhost;dbname=vending_machine';
-            $username = 'root'; // Replace with your DB username
-            $password = ''; // Replace with your DB password
+            $username = 'root';
+            $password = '';
             $options = [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,

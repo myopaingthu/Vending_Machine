@@ -2,13 +2,14 @@
 
 namespace App\Controllers;
 
-use App\DBConnection;
-use App\Helpers\View; // Include the View helper
 use App\Models\User;
+use Firebase\JWT\JWT;
+use App\Helpers\View; // Include the View helper
 
 class AuthController
 {
     private $user;
+    private $key = "test_key";
 
     public function __construct()
     {
@@ -17,7 +18,6 @@ class AuthController
 
     public function showLoginForm()
     {
-        // Display the login view
         View::render('auth/login');
     }
 
@@ -43,7 +43,7 @@ class AuthController
                 if ($_SESSION['role'] === 'admin') {
                     header('Location: /admin/products');
                 } else {
-                    header('Location: /admin/products');
+                    header('Location: /products');
                 }
                 exit;
             } else {
@@ -61,4 +61,34 @@ class AuthController
         header('Location: /login');
         exit;
     }
+
+    public function apiLogin()
+    {
+        $email = $_POST['email'];
+        $password = $_POST['password'];
+
+        $user = $this->user->findByEmail($email);
+
+        if (!$user || !password_verify($password, $user['password'])) {
+            http_response_code(401);
+            echo json_encode(['error' => 'Invalid credentials']);
+            return;
+        }
+
+        $payload = [
+            'iss' => "vending_machine_api",
+            'sub' => $user['id'],
+            'role' => $user['role'],
+            'iat' => time(),
+            'exp' => time() + 3600
+        ];
+
+        $jwt = JWT::encode($payload, $this->key, 'HS256');
+        echo json_encode([
+            'status' => true,
+            'token' => $jwt,
+            'code' => 200
+        ]);
+    }
+
 }

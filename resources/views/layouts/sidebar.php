@@ -2,11 +2,14 @@
 $menuItems = [
     ['label' => 'Products', 'url' => '/admin/products', 'roles' => ['admin']],
     ['label' => 'Users', 'url' => '/admin/users', 'roles' => ['admin']],
+    ['label' => 'Transactions', 'url' => '/admin/transactions', 'roles' => ['admin']],
+    ['label' => 'Products', 'url' => '/products', 'roles' => ['user']],
+    ['label' => 'Transactions', 'url' => '/transactions', 'roles' => ['user']],
 ];
 
 $userRole = $_SESSION['role'] ?? null;
 
-$currentUrl = $_SERVER['REQUEST_URI'];
+$currentUrl = $_SERVER['REQUEST_URI'] ?? null;
 
 ?>
 <aside class="main-sidebar sidebar-dark-primary elevation-4">

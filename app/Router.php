@@ -2,6 +2,8 @@
 
 namespace App;
 
+use App\DBConnection;
+
 class Router
 {
     private $routes = [];
@@ -98,8 +100,34 @@ class Router
             call_user_func_array($handler, $params);
         } elseif (is_array($handler)) {
             list($controller, $method) = $handler;
-            $controllerInstance = new $controller();
+            $controllerInstance = $this->resolveController($controller);
             call_user_func_array([$controllerInstance, $method], $params);
         }
+    }
+
+    private function resolveController($controller)
+    {
+        $reflectionClass = new \ReflectionClass($controller);
+        $constructor = $reflectionClass->getConstructor();
+
+        if (!$constructor) {
+            return new $controller();
+        }
+
+        $dependencies = [];
+        foreach ($constructor->getParameters() as $parameter) {
+            $dependencies[] = $this->resolveDependency($parameter->name);
+        }
+
+        return $reflectionClass->newInstanceArgs($dependencies);
+    }
+
+    private function resolveDependency($dependencyClass)
+    {
+        if ($dependencyClass ===  'db') {
+            return new \App\DBConnection();
+        }
+
+        throw new \Exception("Unresolvable dependency: $dependencyClass");
     }
 }

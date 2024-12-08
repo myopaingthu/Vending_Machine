@@ -1,5 +1,10 @@
 <?php
+
 namespace App\Controllers;
+
+use Exception;
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 
 class BaseController
 {
@@ -13,6 +18,37 @@ class BaseController
         if ($_SESSION['role'] !== $requiredRole) {
             echo "You do not have permission to access this page.";
             exit();
+        }
+    }
+
+    protected function verifyToken()
+    {
+        $headers = getallheaders();
+        $key = "test_key";
+
+        if (!isset($headers['Authorization'])) {
+            http_response_code(401);
+            echo json_encode([
+                'status' => false,
+                'error' => 'Authorization header not found',
+                'code' => 401,
+            ]);
+            exit;
+        }
+
+        $token = str_replace('Bearer ', '', $headers['Authorization']);
+
+        try {
+            $decoded = JWT::decode($token, new Key($key, 'HS256'));
+            return $decoded; 
+        } catch (Exception $e) {
+            http_response_code(401);
+            echo json_encode([
+                'status' => false,
+                'error' => 'Invalid token',
+                'code' => 401,
+            ]);
+            exit;
         }
     }
 }
