@@ -13,12 +13,22 @@ class AuthController
     private $db;
     private $user;
 
+    /**
+     * Constructor to initialize the database and user model.
+     *
+     * @param object $db Database connection instance.
+     */
     public function __construct($db)
     {
         $this->db = $db;
         $this->user = new User(new DBConnection());
     }
 
+    /**
+     * Redirect the user based on their login status and role.
+     *
+     * @return void
+     */
     public function redirect()
     {
         if (isset($_SESSION['user_id'])) {
@@ -29,11 +39,21 @@ class AuthController
         }
     }
 
+    /**
+     * Display the login form view.
+     *
+     * @return void
+     */
     public function showLoginForm()
     {
         View::render('auth/login');
     }
 
+    /**
+     * Handle the user login process, validating credentials and setting session variables.
+     *
+     * @return void
+     */
     public function login()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -61,6 +81,11 @@ class AuthController
         }
     }
 
+    /**
+     * Log out the user by clearing session data.
+     *
+     * @return void
+     */
     public function logout()
     {
         session_unset();
@@ -69,6 +94,11 @@ class AuthController
         exit;
     }
 
+    /**
+     * Handle API-based login and return a JWT token upon successful authentication.
+     *
+     * @return void
+     */
     public function apiLogin()
     {
         $email = $_POST['email'];

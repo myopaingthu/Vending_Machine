@@ -9,6 +9,12 @@ use Firebase\JWT\Key;
 
 class BaseController
 {
+    /**
+     * Check if the logged-in user's role matches the required role.
+     *
+     * @param string $requiredRole The role required to access the resource.
+     * @return void
+     */
     protected function checkRole($requiredRole)
     {
         if (!isset($_SESSION['role'])) {
@@ -24,6 +30,11 @@ class BaseController
         }
     }
 
+    /**
+     * Verify the Bearer token provided in the Authorization header.
+     *
+     * @return object Decoded JWT payload.
+     */
     protected function verifyToken()
     {
         $headers = getallheaders();
