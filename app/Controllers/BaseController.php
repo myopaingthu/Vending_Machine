@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use Exception;
+use App\Helpers\View;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
@@ -16,8 +17,10 @@ class BaseController
         }
 
         if ($_SESSION['role'] !== $requiredRole) {
-            echo "You do not have permission to access this page.";
-            exit();
+            $response_code = 401;
+            $message = 'You do not have permission to access this page.';
+            View::render('utilities/error', compact('response_code', 'message'));
+            exit;
         }
     }
 

@@ -6,6 +6,7 @@ use Exception;
 use App\DBConnection;
 use App\Helpers\View;
 use App\Models\Product;
+use App\Helpers\Response;
 use App\Models\Transaction;
 
 class ProductsController extends BaseController
@@ -48,6 +49,12 @@ class ProductsController extends BaseController
         $name = filter_input(INPUT_POST, 'name');
         $price = filter_input(INPUT_POST, 'price', FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
         $quantity = filter_input(INPUT_POST, 'quantity', FILTER_SANITIZE_NUMBER_INT);
+        //for test enviornment
+        if (php_sapi_name() === 'cli') {
+            $name = $_POST['name'] ?? null;
+            $price = $_POST['price']  ?? null;
+            $quantity = $_POST['quantity']  ?? null;
+        }
 
         if (empty($name)) {
             $errors[] = "Product name is required.";
@@ -70,14 +77,12 @@ class ProductsController extends BaseController
         }
 
         if (!empty($errors)) {
-            $_SESSION['errors'] = $errors;
-            header('Location: /admin/products/create');
-            exit;
+            Response::withErrors($errors, '/admin/products/create');
+        } else {
+            Product::create($name, $price, $quantity);
+            $_SESSION['success'] = 'Product Created Successfully.';
+            Response::redirect('/admin/products');
         }
-
-        Product::create($name, $price, $quantity);
-        header('Location: /admin/products');
-        exit;
     }
 
     public function edit($id)
