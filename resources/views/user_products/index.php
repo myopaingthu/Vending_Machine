@@ -37,7 +37,7 @@ include __DIR__ . '/../layouts/master.php';
                                         <input type="number" class="form-control purchaseQuantity" id="quantity_<?= $product['id'] ?>"
                                             name="quantity" min="1" max="<?= $product['quantity_available'] ?>" required>
                                     </div>
-                                    <button type="button" class="btn btn-success btn-block btn-purchase">Purcase</button>
+                                    <button type="button" class="btn btn-success btn-block btn-purchase">Purchase</button>
                                 </form>
                             </div>
                         </div>
