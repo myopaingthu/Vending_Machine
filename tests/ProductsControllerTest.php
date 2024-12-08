@@ -1,5 +1,6 @@
 <?php
 
+use App\Controllers\AuthController;
 use App\Models\User;
 use App\DBConnection;
 use App\Models\Product;
@@ -11,7 +12,9 @@ use App\Controllers\ProductsController;
 class ProductsControllerTest extends TestCase
 {
     private $productsController;
+    private $authController;
     private $mockDBConnection;
+    private $user;
 
     protected function setUp(): void
     {
@@ -20,21 +23,17 @@ class ProductsControllerTest extends TestCase
         $this->productsController = new ProductsController(
             $this->mockDBConnection
         );
+        $this->authController = new AuthController(
+            $this->mockDBConnection
+        );
     }
-
-    function header($string, $replace = true, $http_response_code = null)
-    {
-        PHPUnit\Framework\Assert::assertTrue(true);
-    }
-
 
     public function testProductListPage()
     {
         ob_start();
-        $user = User::findByEmail('admin@gmail.com');
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['username'] = $user['username'];
-        $_SESSION['role'] = $user['role'];
+        $_SESSION['user_id'] = 1;
+        $_SESSION['username'] = 'Admin';
+        $_SESSION['role'] = 'admin';
 
         $this->productsController->index();
         $output = ob_get_clean();
@@ -47,10 +46,9 @@ class ProductsControllerTest extends TestCase
     public function testProductCreatePage()
     {
         ob_start();
-        $user = User::findByEmail('admin@gmail.com');
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['username'] = $user['username'];
-        $_SESSION['role'] = $user['role'];
+        $_SESSION['user_id'] = 1;
+        $_SESSION['username'] = 'Admin';
+        $_SESSION['role'] = 'admin';
 
         $this->productsController->create();
         $output = ob_get_clean();
@@ -124,5 +122,28 @@ class ProductsControllerTest extends TestCase
         $this->productsController->store();
         $this->assertEmpty($_SESSION['errors'] ?? null);
         $this->assertEquals("Product Created Successfully.", $_SESSION['success']);
+    }
+
+    public function testApiIndexReturnsProducts()
+    {
+        $_POST = ['email' => 'user@gmail.com', 'password' => 'password'];
+        ob_start();
+        $this->authController->apiLogin();
+        $token_output = ob_get_clean();
+        $token_obj = json_decode($token_output);
+        $token = $token_obj->token;
+        $url = 'http://127.0.0.1/api/products';
+
+        $ch = curl_init($url);
+
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer ' . $token
+        ]);
+
+        $response = curl_exec($ch);
+        curl_close($ch);
+        $responseData = json_decode($response, true);
+        $this->assertArrayHasKey('data', $responseData);
     }
 }

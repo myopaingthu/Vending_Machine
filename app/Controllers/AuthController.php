@@ -2,18 +2,31 @@
 
 namespace App\Controllers;
 
+use App\DBConnection;
 use App\Models\User;
 use Firebase\JWT\JWT;
-use App\Helpers\View; // Include the View helper
+use App\Helpers\View;
 
 class AuthController
 {
-    private $user;
     private $key = "test_key";
+    private $db;
+    private $user;
 
-    public function __construct()
+    public function __construct($db)
     {
-        $this->user = new User();
+        $this->db = $db;
+        $this->user = new User(new DBConnection());
+    }
+
+    public function redirect()
+    {
+        if (isset($_SESSION['user_id'])) {
+            if ($_SESSION['role'] === 'admin') header('Location: /admin/products');
+            else header('Location: /products');
+        } else {
+            header('Location: /login');
+        }
     }
 
     public function showLoginForm()
@@ -24,22 +37,16 @@ class AuthController
     public function login()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Sanitize inputs
             $email = trim($_POST['email']);
             $password = $_POST['password'];
 
-            // Fetch user from DB
             $user = $this->user->findByEmail($email);
-            
 
-            // Validate credentials
             if ($user && password_verify($password, $user['password'])) {
-                // Start the session and store user details
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['username'] = $user['username'];
-                $_SESSION['role'] = $user['role']; // Store role
+                $_SESSION['role'] = $user['role'];
 
-                // Redirect based on role
                 if ($_SESSION['role'] === 'admin') {
                     header('Location: /admin/products');
                 } else {
@@ -90,5 +97,4 @@ class AuthController
             'code' => 200
         ]);
     }
-
 }

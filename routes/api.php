@@ -11,3 +11,4 @@ global $router;
 $router->post('api/login', [AuthController::class, 'apiLogin']);
 $router->get('api/products', [ProductsController::class, 'apiIndex']);
 $router->post('api/products/{id}/purchase', [ProductsController::class, 'apiPurchase']);
+$router->get('api/transactions', [TransactionController::class, 'apiIndex']);

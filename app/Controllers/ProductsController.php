@@ -12,10 +12,14 @@ use App\Models\Transaction;
 class ProductsController extends BaseController
 {
     private $db;
+    private $product;
+    private $transaction;
 
     public function __construct($db)
     {
         $this->db = $db;
+        $this->product = new Product(new DBConnection());
+        $this->transaction = new Transaction(new DBConnection());
     }
 
     public function index()
@@ -28,8 +32,8 @@ class ProductsController extends BaseController
         $sortField = $_GET['sort'] ?? 'name';
         $sortOrder = $_GET['order'] ?? 'ASC';
 
-        $products = Product::getProducts($limit, $offset, $sortField, $sortOrder);
-        $totalProducts = Product::countProducts();
+        $products = $this->product->getProducts($limit, $offset, $sortField, $sortOrder);
+        $totalProducts = $this->product->countProducts();
         $totalPages = ceil($totalProducts / $limit);
 
         View::render('products/index', compact('products', 'totalProducts', 'totalPages', 'page', 'sortField', 'sortOrder'));
@@ -79,7 +83,7 @@ class ProductsController extends BaseController
         if (!empty($errors)) {
             Response::withErrors($errors, '/admin/products/create');
         } else {
-            Product::create($name, $price, $quantity);
+            $this->product->create($name, $price, $quantity);
             $_SESSION['success'] = 'Product Created Successfully.';
             Response::redirect('/admin/products');
         }
@@ -88,7 +92,7 @@ class ProductsController extends BaseController
     public function edit($id)
     {
         $this->checkRole('admin');
-        $product = Product::find($id);
+        $product = $this->product->find($id);
         View::render('products/edit', compact('product'));
     }
 
@@ -127,14 +131,16 @@ class ProductsController extends BaseController
             exit;
         }
 
-        Product::update($id, $name, $price, $quantity);
+        $_SESSION['success'] = 'Product Updated Successfully.';
+        $this->product->update($id, $name, $price, $quantity);
         header("Location: /admin/products");
     }
 
     public function destroy($id)
     {
         $this->checkRole('admin');
-        Product::delete($id);
+        $this->product->delete($id);
+        $_SESSION['success'] = 'Product Deleted Successfully.';
         header("Location: /admin/products");
     }
 
@@ -142,6 +148,10 @@ class ProductsController extends BaseController
     {
         $this->checkRole('user');
         $quantity = filter_input(INPUT_POST, 'quantity', FILTER_SANITIZE_NUMBER_INT);
+        //for test enviornment
+        if (php_sapi_name() === 'cli') {
+            $quantity = $_POST['quantity']  ?? null;
+        }
 
         if (!isset($quantity)) {
             $errors[] = "Quantity is required.";
@@ -158,27 +168,23 @@ class ProductsController extends BaseController
         }
 
 
-        $db = $this->db->getInstance()->getPDO();
+        $db = $this->db->getPDO();
         $user_id = $_SESSION['user_id'];
         try {
             $db->beginTransaction();
 
-            $stmt = $db->prepare("SELECT * FROM products WHERE id = :product_id FOR UPDATE");
-            $stmt->execute(['product_id' => $id]);
-            $product = $stmt->fetch();
-
+            $product = $this->product->getForUpdate($id);
             if (!$product) {
                 throw new Exception("Product not found.");
             }
-
             if ($product['quantity_available'] < $quantity) {
                 throw new Exception("Insufficient stock available.");
             }
 
             $toal_price = $quantity * $product['price'];
-            Product::purchase($id, $quantity);
+            $this->product->purchase($id, $quantity);
 
-            Transaction::create([
+            $this->transaction->create([
                 'user_id' => $user_id,
                 'product_id' => $id,
                 'quantity' => $quantity,
@@ -186,7 +192,7 @@ class ProductsController extends BaseController
             ]);
             $db->commit();
 
-            $_SESSION['success'] = 'Purchase Successfully.';
+            $_SESSION['success'] = 'Purchased Successfully.';
             header('Location: /products');
         } catch (Exception $e) {
             $db->rollBack();
@@ -207,8 +213,8 @@ class ProductsController extends BaseController
         $sortField = $_GET['sort'] ?? 'name';
         $sortOrder = $_GET['order'] ?? 'ASC';
 
-        $products = Product::getProducts($limit, $offset, $sortField, $sortOrder);
-        $totalProducts = Product::countProducts();
+        $products = $this->product->getProducts($limit, $offset, $sortField, $sortOrder);
+        $totalProducts = $this->product->countProducts();
         $totalPages = ceil($totalProducts / $limit);
 
         View::render('user_products/index', compact('products', 'totalProducts', 'totalPages', 'page', 'sortField', 'sortOrder'));
@@ -217,7 +223,7 @@ class ProductsController extends BaseController
     public function apiIndex()
     {
         $user = $this->verifyToken();
-        $products = Product::all();
+        $products = $this->product->all();
         echo json_encode([
             'status' => true,
             'data' => $products,
@@ -249,27 +255,23 @@ class ProductsController extends BaseController
         }
 
 
-        $db = $this->db->getInstance()->getPDO();
+        $db = $this->db->getPDO();
         $user_id = $user->sub;
         try {
             $db->beginTransaction();
 
-            $stmt = $db->prepare("SELECT * FROM products WHERE id = :product_id FOR UPDATE");
-            $stmt->execute(['product_id' => $id]);
-            $product = $stmt->fetch();
-
+            $product = $this->product->getForUpdate($id);
             if (!$product) {
                 throw new Exception("Product not found.");
             }
-
             if ($product['quantity_available'] < $quantity) {
                 throw new Exception("Insufficient stock available.");
             }
 
             $toal_price = $quantity * $product['price'];
-            Product::purchase($id, $quantity);
+            $this->product->purchase($id, $quantity);
 
-            Transaction::create([
+            $this->transaction->create([
                 'user_id' => $user_id,
                 'product_id' => $id,
                 'quantity' => $quantity,

@@ -20,6 +20,8 @@
 </head>
 <script>
     $(document).ready(function() {
+        $(".back").on("click", () => history.back());
+
         <?php if (isset($_SESSION['success'])): ?>
             toastr.success('<?= htmlspecialchars($_SESSION['success']) ?>')
         <?php unset($_SESSION['success']);

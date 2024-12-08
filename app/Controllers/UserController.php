@@ -7,18 +7,27 @@ use App\Models\User;
 
 class UserController extends BaseController
 {
+    private $db;
+    private $user;
+
+    public function __construct($db)
+    {
+        $this->db = $db;
+        $this->user = new User($db);
+    }
+
     public function index()
     {
         $this->checkRole('admin');
 
-        $limit = 1;
+        $limit = 5;
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
         $offset = ($page - 1) * $limit;
         $sortField = $_GET['sort'] ?? 'username';
         $sortOrder = $_GET['order'] ?? 'ASC';
 
-        $users = User::getUsers($limit, $offset, $sortField, $sortOrder);
-        $totalUsers = User::countUsers();
+        $users = $this->user->getUsers($limit, $offset, $sortField, $sortOrder);
+        $totalUsers = $this->user->countUsers();
         $totalPages = ceil($totalUsers / $limit);
 
         View::render('users/index', compact('users', 'totalUsers', 'totalPages', 'page', 'sortField', 'sortOrder'));
@@ -43,12 +52,16 @@ class UserController extends BaseController
 
         if (empty($name)) {
             $errors[] = "User name is required.";
+        } else if ($this->user->findByName($name)) {
+            $errors[] = "Duplicate user name.";
         }
 
         if (empty($email)) {
             $errors[] = "Email is required.";
         } else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors[] = "Invalid email format.";
+        } else if ($this->user->findByEmail($email)) {
+            $errors[] = "Duplicate email.";
         }
 
         if (!isset($password)) {
@@ -73,12 +86,13 @@ class UserController extends BaseController
             exit;
         }
 
-        User::create([
+        $this->user->create([
             'name' => $name,
             'email' => $email,
             'password' => $password,
             'role' => $role
         ]);
+        $_SESSION['success'] = 'User Created Successfully.';
         header('Location: /admin/users');
         exit;
     }
@@ -86,7 +100,7 @@ class UserController extends BaseController
     public function edit($id)
     {
         $this->checkRole('admin');
-        $user = User::find($id);
+        $user = $this->user->find($id);
         View::render('users/edit', compact('user'));
     }
 
@@ -125,12 +139,13 @@ class UserController extends BaseController
             exit;
         }
 
-        User::update([
+        $this->user->update([
             'id' => $id,
             'name' => $name,
             'role' => $role,
             'email' => $email
         ]);
+        $_SESSION['success'] = 'User Updated Successfully.';
         header("Location: /admin/users");
     }
 
@@ -141,7 +156,8 @@ class UserController extends BaseController
             exit;
         }
         $this->checkRole('admin');
-        User::delete($id);
+        $this->user->delete($id);
+        $_SESSION['success'] = 'User Deleted Successfully.';
         header("Location: /admin/users");
     }
 }

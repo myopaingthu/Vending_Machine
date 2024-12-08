@@ -21,15 +21,6 @@ include __DIR__ . '/../layouts/master.php';
                 </div>
             <?php unset($_SESSION['errors']);
             endif; ?>
-            <!--<div class="row mb-3">
-                <div class="col-4">
-                    <input type="text" id="searchBar" class="form-control" placeholder="Search by product name...">
-                </div>
-
-                <div class="col-4">
-                    <select name="sort" id="sort"></select>
-                </div>
-            </div>-->
 
             <div class="row" id="productCards">
                 <?php foreach ($products as $product): ?>
@@ -46,7 +37,7 @@ include __DIR__ . '/../layouts/master.php';
                                         <input type="number" class="form-control purchaseQuantity" id="quantity_<?= $product['id'] ?>"
                                             name="quantity" min="1" max="<?= $product['quantity_available'] ?>" required>
                                     </div>
-                                    <button type="submit" class="btn btn-success btn-block">Purcase</button>
+                                    <button type="button" class="btn btn-success btn-block btn-purchase">Purcase</button>
                                 </form>
                             </div>
                         </div>
@@ -92,6 +83,29 @@ include __DIR__ . '/../layouts/master.php';
             if (response.isConfirmed) {
                 var form_id = $(this).attr("data-origin");
                 $("#" + form_id).submit();
+            }
+        });
+    });
+
+    $(document).on("click", ".btn-purchase", function(e) {
+        e.preventDefault();
+
+        const $form = $(this).closest('form');
+        const quantity = $form.find(".purchaseQuantity").val();
+        const price = parseFloat($form.closest(".product-card").data("price"));
+        const total = (quantity * price).toFixed(2);
+
+        Swal.fire({
+            title: "Confirm Purchase",
+            html: `<p>Are you sure you want to purchase <strong>${quantity}</strong> item(s) for a total of <strong>$${total}</strong>?</p>`,
+            icon: "info",
+            showCancelButton: true,
+            confirmButtonText: "Yes, Purchase",
+            cancelButtonText: "Cancel",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $form.off("submit");
+                $form.submit();
             }
         });
     });

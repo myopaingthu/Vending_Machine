@@ -39,7 +39,7 @@ include __DIR__ . '/../layouts/master.php';
         </div>
     </div>
 </div>
-<!--<script>
+<script>
     $(document).ready(function() {
         $("#productForm").validate({
             rules: {
@@ -72,7 +72,7 @@ include __DIR__ . '/../layouts/master.php';
             errorClass: "text-danger"
         });
     });
-</script>-->
+</script>
 <?php
 include __DIR__ . '/../layouts/footer.php';
 ?>

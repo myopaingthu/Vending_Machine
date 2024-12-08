@@ -8,10 +8,11 @@ use App\Controllers\TransactionController;
 
 $router = new Router();
 
+$router->get('/', [AuthController::class, 'redirect']);
+
 $router->get('/login', [AuthController::class, 'showLoginForm']);
 $router->post('/login', [AuthController::class, 'login']);
 $router->post('/logout', [AuthController::class, 'logout', true]);
-$router->get('/save_user', [AuthController::class, 'save'], true);
 
 // Product routes
 $router->get('admin/products', [ProductsController::class, 'index'], true);

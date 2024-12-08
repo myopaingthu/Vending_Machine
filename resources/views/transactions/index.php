@@ -34,6 +34,11 @@ include __DIR__ . '/../layouts/master.php';
                                 Total Price <?= $sortField === 'total_price' ? ($sortOrder === 'ASC' ? '↑' : '↓') : '' ?>
                             </a>
                         </th>
+                        <th>
+                            <a href="?sort=created_at&order=<?= $sortOrder === 'ASC' ? 'DESC' : 'ASC' ?>" class="text-white">
+                                Date <?= $sortField === 'created_at' ? ($sortOrder === 'ASC' ? '↑' : '↓') : '' ?>
+                            </a>
+                        </th>
                     </tr>
                     <tbody>
                         <?php foreach ($transactions as $transaction): ?>
@@ -42,6 +47,7 @@ include __DIR__ . '/../layouts/master.php';
                                 <td><?= htmlspecialchars($transaction['user_name']) ?></td>
                                 <td><?= htmlspecialchars($transaction['quantity']) ?></td>
                                 <td>$<?= number_format($transaction['total_price'], 2) ?></td>
+                                <td><?= $transaction['created_at'] ?></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
